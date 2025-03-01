@@ -1,0 +1,94 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Search Case Data API",
+      "description": "Retrieves case data based on search query.",
+      "version": "v1.0.0"
+    },
+    "servers": [
+      {
+        "url": "https://pgaifoundry.azurewebsites.net/api"
+      }
+    ],
+    "paths": {
+      "/search_case_data": {
+        "get": {
+          "description": "Fetches the cases information for the specified query.",
+          "operationId": "SearchCaseData",
+          "parameters": [
+            {
+              "name": "query",
+              "in": "query",
+              "description": "Search query for case data",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "limit",
+              "in": "query",
+              "description": "Number of results to return",
+              "required": false,
+              "schema": {
+                "type": "integer",
+                "default": 10
+              }
+            },
+            {
+              "name": "code",
+              "in": "query",
+              "description": "code for auth",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "default": ""
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Successful response",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "results": {
+                        "type": "array",
+                        "items": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request parameters"
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "deprecated": false
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "ApiKeyAuth": {
+          "type": "apiKey",
+          "in": "header",
+          "name": "x-api-key"
+        }
+      }
+    }
+  }
+  
