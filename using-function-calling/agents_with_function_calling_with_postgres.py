@@ -32,6 +32,7 @@ USAGE:
 from typing import Any, Callable, Set
 
 import os, time, json
+from datetime import datetime
 from azure.ai.projects import AIProjectClient
 from azure.ai.projects.telemetry import trace_function
 from azure.identity import DefaultAzureCredential
@@ -39,7 +40,7 @@ from azure.ai.projects.models import FunctionTool, RequiredFunctionToolCall, Sub
 from opentelemetry import trace
 from azure.monitor.opentelemetry import configure_azure_monitor
 from pprint import pprint
-import db_helper
+import legal_agent_queries
 from dotenv import load_dotenv
 load_dotenv(".env")
 
@@ -55,9 +56,10 @@ if not application_insights_connection_string:
     exit()
 configure_azure_monitor(connection_string=application_insights_connection_string)
 
+project_client.telemetry.enable() # Enable Azure Monitor tracing
+
 scenario = os.path.basename(__file__)
 tracer = trace.get_tracer(__name__)
-
 
 # The trace_func decorator will trace the function call and enable adding additional attributes
 # to the span in the function implementation. Note that this will trace the function parameters and their values.
@@ -66,7 +68,7 @@ def vector_search_cases(query: str, limit: int = 10) -> str:
     """
     Fetches the cases information for the specified query.
 
-    :param query(str): The query to fetch cases for.
+    :param query(str): The query to fetch cases for specfically in Washingition.
     :type query: str
 
     :param limit: The maximum number of cases to fetch, defaults to 10
@@ -77,19 +79,45 @@ def vector_search_cases(query: str, limit: int = 10) -> str:
     # In a real-world scenario, you'd integrate using cases API.
 
     # Fetch cases information from the database using an PostgreSQL helper class
-    cases_data = db_helper.get_from_db(query, limit)
+    cases_data = legal_agent_queries.get_from_cases_db(query, limit)
 
     # Adding attributes to the current span
     span = trace.get_current_span()
     span.set_attribute("requested_query", query)
 
     cases_json = json.dumps(cases_data)
+    span.set_attribute("cases_json", cases_json)
     return cases_json
 
+@trace_function()
+def count_cases(query: str, start_date: datetime ="1911-01-01", end_date: datetime ="2025-12-31", limit: int = 10) -> str:
+    """
+    Count the number of cases related to the specified query. using the date range.
+
+    :param query(str): The query to search.
+    :type query: str
+
+    :param limit: The maximum number of cases fetch, defaults to 10
+    :type limit: int, optional
+    :return: listing information as a JSON string.
+    :rtype: str
+    """
+    # In a real-world scenario, you'd integrate using cases API.
+
+    # Fetch listing information from the database using an PostgreSQL helper class
+    cases_count = legal_agent_queries.count_related_cases(query, start_date, end_date, limit)
+
+    # Adding attributes to the current span
+    span = trace.get_current_span()
+    span.set_attribute("requested_query", query)
+    cases_count = json.dumps(cases_count)
+    span.set_attribute("result", cases_count)
+    return cases_count
 
 # Statically defined user functions for fast reference
 user_functions: Set[Callable[..., Any]] = {
     vector_search_cases,
+    count_cases
 }
 
 # Initialize function tool with user function
@@ -112,9 +140,23 @@ with tracer.start_as_current_span(scenario):
         message = project_client.agents.create_message(
             thread_id=thread.id,
             role="user",
-            content="Water leaking into the apartment from the floor above. What are the prominent legal precedents in Washington on this problem?",
+            content="Water leaking into the apartment from the floor above. What are the rights as a tenant in Washington?",
         )
         print(f"Created message, ID: {message.id}")
+
+        message2 = project_client.agents.create_message(
+            thread_id=thread.id,
+            role="user",
+            content="In the last 10 years how many cases have been filed in Washington on this issue?",
+        )
+        print(f"Created message, ID: {message2.id}")
+
+        message3 = project_client.agents.create_message(
+            thread_id=thread.id,
+            role="user",
+            content="Summarize the findings and let me know, What are the prominent legal precedents in Washington on this problem?",
+        )
+        print(f"Created message, ID: {message3.id}")
 
         run = project_client.agents.create_run(thread_id=thread.id, assistant_id=agent.id)
         print(f"Created run, ID: {run.id}")
@@ -149,7 +191,9 @@ with tracer.start_as_current_span(scenario):
                 print(f"Tool outputs: {tool_outputs}")
                 if tool_outputs:
                     project_client.agents.submit_tool_outputs_to_run(
-                        thread_id=thread.id, run_id=run.id, tool_outputs=tool_outputs
+                        thread_id=thread.id, 
+                        run_id=run.id, 
+                        tool_outputs=tool_outputs
                     )
 
             print(f"Current run status: {run.status}")
