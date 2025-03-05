@@ -1,11 +1,5 @@
-node_modules/
-/test-results/
 .env
-package-lock.json
-.env
-
 .vscode/
-__azurite_db_blob_extent__.json
-__azurite_db_blob__.json
-using-azure-function/func/pgai/
 
+.DS_Store
+.venv/

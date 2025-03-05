@@ -1,8 +1,0 @@
-node_modules/
-/test-results/
-package-lock.json
-.vscode/
-__azurite_db_blob_extent__.json
-__azurite_db_blob__.json
-src
-swa-db-connections
