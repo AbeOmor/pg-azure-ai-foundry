@@ -38,7 +38,9 @@ def vector_search_cases(vector_search_query: str, start_date: datetime ="1911-01
     db = create_engine(CONN_STR)
     
     query = """
-    SELECT id, name, opinion, opinions_vector <=> azure_openai.create_embeddings('text-embedding-3-small', %s)::vector as similarity
+    SELECT id, name, opinion, 
+    opinions_vector <=> azure_openai.create_embeddings(
+    'text-embedding-3-small', %s)::vector as similarity
     FROM cases
     WHERE decision_date BETWEEN %s AND %s
     ORDER BY similarity
