@@ -1,5 +1,6 @@
-node_modules/
-/test-results/
 .env
-package-lock.json
-.env
+.vscode/
+
+.DS_Store
+.venv/
+.pg-azure-ai
