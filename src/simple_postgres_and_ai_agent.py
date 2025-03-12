@@ -40,7 +40,7 @@ print(f"Created thread, ID: {thread.id}")
 message = project_client.agents.create_message(
     thread_id=thread.id,
     role="user",
-    content="Water leaking into the apartment from the floor above, What are the prominent legal precedents in Washington on this problem in the last 25 years?"
+    content="Water leaking into the apartment from the floor above, What are the prominent legal precedents in Washington on this problem in the last 10 years?"
 )
 print(f"Created message, ID: {message.id}")
 

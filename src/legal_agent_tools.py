@@ -20,7 +20,7 @@ CONN_STR = os.getenv("AZURE_PG_CONNECTION")
 @trace_function()
 def vector_search_cases(vector_search_query: str, start_date: datetime ="1911-01-01", end_date: datetime ="2025-12-31", limit: int = 10) -> str:
     """
-    Fetches the cases information for the specified query.
+    Fetches the cases information in Washington State for the specified query.
 
     :param query(str): The query to fetch cases for specifically in Washington.
     :type query: str
@@ -59,16 +59,13 @@ def vector_search_cases(vector_search_query: str, start_date: datetime ="1911-01
 
 # Count the number of cases related to the specified query
 @trace_function()
-def count_cases(vector_search_query: str, start_date: datetime ="1911-01-01", end_date: datetime ="2025-12-31", limit: int = 10) -> str:
+def count_cases(vector_search_query: str, limit: int = 10) -> str:
     """
-    Count the number of cases related to the specified query. using the date range.
+    Count the number of cases related to the specified query.
+    Invoke this tool for aggregation, if the user mentions the word "count" or "how many" or a similar word.
 
     :param query(str): The query to search.
     :type query: str
-    :param start_date: The start date for the search, defaults to "1911-01-01"
-    :type start_date: datetime, optional
-    :param end_date: The end date for the search, defaults to "2025-12-31"
-    :type end_date: datetime, optional
     :param limit: The maximum number of cases fetch, defaults to 10
     :type limit: int, optional
 
@@ -83,12 +80,11 @@ def count_cases(vector_search_query: str, start_date: datetime ="1911-01-01", en
     FROM cases
     WHERE opinions_vector <=> azure_openai.create_embeddings(
         'text-embedding-3-small', 
-    %s)::vector < 0.8 -- 0.8 is the threshold
-    AND decision_date BETWEEN %s AND %s
+    %s)::vector < 0.8 -- 0.8 is the threshold for similarity
     limit %s;
     """
 
-    df = pd.read_sql(query, db, params=(vector_search_query,datetime.strptime(start_date, "%Y-%m-%d"), datetime.strptime(end_date, "%Y-%m-%d"), limit))
+    df = pd.read_sql(query, db, params=(vector_search_query, limit))
 
     # Adding attributes to the current span
     span = trace.get_current_span()

@@ -75,7 +75,10 @@ with tracer.start_as_current_span(scenario):
         agent = project_client.agents.create_agent(
             model=os.environ["MODEL_DEPLOYMENT_NAME"],
             name="cases-assistant-with-function-calling",
-            instructions="You are a helpful legal assistant that can retrieve information about legal cases.",
+            instructions=f"""
+            You are a helpful legal assistant that can retrieve information about legal cases. 
+            The current date is {datetime.now().strftime('%Y-%m-%d')}.
+            """,
             toolset=toolset,
         )
         print(f"Created agent, ID: {agent.id}")
@@ -86,7 +89,7 @@ with tracer.start_as_current_span(scenario):
         message = project_client.agents.create_message(
             thread_id=thread.id,
             role="user",
-            content="Water leaking into the apartment from the floor above. What are the prominent legal precedents in Washington on this problem in the last 20 years?",
+            content="Water leaking into the apartment from the floor above. What are the prominent legal precedents in Washington on this problem in the last 10 years?",
         )
         print(f"Created message, ID: {message.id}")
 
@@ -94,7 +97,7 @@ with tracer.start_as_current_span(scenario):
         print(f"Created run, ID: {run.id}")
 
         while run.status in ["queued", "in_progress", "requires_action"]:
-            time.sleep(10)
+            time.sleep(1)
             run = project_client.agents.get_run(thread_id=thread.id, run_id=run.id)
             print(f"Current run status: {run.status}")
 
