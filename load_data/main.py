@@ -31,12 +31,14 @@ cur = conn.cursor()
 def create_extensions(cur):
     cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
     cur.execute("CREATE EXTENSION IF NOT EXISTS azure_ai")
+    print("Extensions created successfully")
     conn.commit()
 
 # Setup OpenAI
 def create_openai_connection(cur):
     cur.execute(f"SELECT azure_ai.set_setting('azure_openai.endpoint', '{AZURE_OPENAI_ENDPOINT}')")
     cur.execute(f"SELECT azure_ai.set_setting('azure_openai.subscription_key', '{AZURE_OPENAI_API_KEY}')")
+    print("OpenAI connection established successfully")
     conn.commit()
 
 # Drop the cases table if it exists

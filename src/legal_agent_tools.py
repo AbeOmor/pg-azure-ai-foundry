@@ -46,7 +46,8 @@ def vector_search_cases(vector_search_query: str, start_date: datetime ="1911-01
     ORDER BY similarity
     LIMIT %s;
     """
-
+    
+    # Fetch cases information from the database
     df = pd.read_sql(query, db, params=(vector_search_query,datetime.strptime(start_date, "%Y-%m-%d"), datetime.strptime(end_date, "%Y-%m-%d"),limit))
 
     # Adding attributes to the current span

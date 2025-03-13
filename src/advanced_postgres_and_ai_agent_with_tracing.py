@@ -45,10 +45,12 @@ from azure.monitor.opentelemetry import configure_azure_monitor
 from pprint import pprint
 from legal_agent_tools import user_functions
 from dotenv import load_dotenv
-load_dotenv(".env")
+# Load environment variables
+load_dotenv("../.env")
 
 project_client = AIProjectClient.from_connection_string(
-    credential=DefaultAzureCredential(), conn_str=os.environ["PROJECT_CONNECTION_STRING"]
+    credential=DefaultAzureCredential(), 
+    conn_str=os.environ["PROJECT_CONNECTION_STRING"]
 )
 
 # Enable Azure Monitor tracing
@@ -74,7 +76,7 @@ with tracer.start_as_current_span(scenario):
         # Create an agent and run user's request with function calls
         agent = project_client.agents.create_agent(
             model=os.environ["MODEL_DEPLOYMENT_NAME"],
-            name="cases-assistant-with-function-calling",
+            name=f"advanced-legal-cases-agent-{datetime.now().strftime('%Y%m%d%H%M')}",
             instructions=f"""
             You are a helpful legal assistant that can retrieve information about legal cases. 
             The current date is {datetime.now().strftime('%Y-%m-%d')}.
@@ -93,7 +95,7 @@ with tracer.start_as_current_span(scenario):
         )
         print(f"Created message, ID: {message.id}")
 
-        run = project_client.agents.create_run(thread_id=thread.id, assistant_id=agent.id)
+        run = project_client.agents.create_run(thread_id=thread.id, agent_id=agent.id)
         print(f"Created run, ID: {run.id}")
 
         while run.status in ["queued", "in_progress", "requires_action"]:

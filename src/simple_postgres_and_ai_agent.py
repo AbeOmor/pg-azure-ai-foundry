@@ -5,6 +5,9 @@ from azure.identity import DefaultAzureCredential
 from azure.ai.projects.models import FunctionTool, ToolSet
 from datetime import datetime
 from legal_agent_tools import user_functions # user functions which can be found in a legal_agent_tools.py file.
+from dotenv import load_dotenv
+# Load environment variables
+load_dotenv("../.env")
 
 # Create an Azure AI Client from a connection string, copied from your Azure AI Foundry project.
 # It should be in the format "<HostName>;<AzureSubscriptionId>;<ResourceGroup>;<HubName>"
@@ -49,7 +52,7 @@ print(f"Created message, ID: {message.id}")
 from pprint import pprint
 
 # Create and process agent run in thread with tools
-run = project_client.agents.create_and_process_run(thread_id=thread.id, assistant_id=agent.id)
+run = project_client.agents.create_and_process_run(thread_id=thread.id, agent_id=agent.id)
 print(f"Run finished with status: {run.status}")
 
 if run.status == "failed":
